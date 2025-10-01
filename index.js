@@ -112,6 +112,8 @@ const connectDevice = async (device) => {
   await joyCon.enableUSBHIDJoystickReport();
   await joyCon.enableStandardFullMode();
   await joyCon.enableIMUMode();
+  const batteryInfo = await joyCon.getBatteryLevel()
+  document.getElementById('battery-level').textContent = batteryInfo.level;
   return joyCon;
 };
 

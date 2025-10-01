@@ -44,6 +44,7 @@ const sendMidi = (bytes, msg = '') => {
     //console.log('SendMidi--' + bytes + ' ' + msg);
     midiout.send(bytes);
   } else {
+    console.log(bytes)
     console.log('MIDI not connected');
   }
 };
@@ -95,7 +96,6 @@ const analogCCForControl = (control) => {
 };
 
 
-
 const analogCCForControl2 = () => {
   return (readValue) => [
     MIDI_CC_CH_1,
@@ -106,6 +106,31 @@ const analogCCForControl2 = () => {
     ),
   ];
 };
+
+const buttonCCToggleForControl = (control) => {
+    
+    return function(readValue) {
+
+        if (readValue) { 
+            // 1. Flip the state stored on the control object.
+            this.isToggleOn = !this.isToggleOn;
+
+            // 2. Determine the output value based on the new state.
+            const outputValue = this.isToggleOn ? MIDI_VELOCITY_MAX : MIDI_VELOCITY_MIN;
+
+            // 3. Return the new MIDI message array.
+            return [
+                MIDI_CC_CH_1,
+                control, // Captured from the factory function
+                outputValue,
+            ];
+        }
+        
+        // Return null for the 'release' event.
+        return null; 
+    };
+};
+
 
 const leftControls = [
   // Define buttons first since they're latency critical and the updates are
@@ -123,12 +148,14 @@ const leftControls = [
   {
     name: 'up-button',
     read_value: (packet) => packet.buttonStatus.up,
-    generate_midi: noteOnOff(0x26),
+    isToggleOn:false,
+    generate_midi: buttonCCToggleForControl(0x26),
   },
   {
     name: 'left-button',
     read_value: (packet) => packet.buttonStatus.left,
-    generate_midi: noteOnOff(0x27),
+    isToggleOn:false,
+    generate_midi: buttonCCToggleForControl(0x27),
   },
   {
     name: 'l-button',
@@ -179,20 +206,20 @@ const leftControls = [
   },
 
   // Analog controls (CC)
-  {
-    name: 'l-orientation.beta',
-    read_value: (packet) =>
-      (Number(packet.actualOrientation.beta) + 90.0) / 180.0,
-    generate_midi: analogCCForControl(0x0b),
-    threshold: 3 / 180.0,
-  },
-  {
-    name: 'l-orientation.gamma',
-    read_value: (packet) =>
-      (Number(packet.actualOrientation.gamma) + 90.0) / 180.0,
-    generate_midi: analogCCForControl(0x0c),
-    threshold: 3 / 180.0,
-  },
+  // {
+  //   name: 'l-orientation.beta',
+  //   read_value: (packet) =>
+  //     (Number(packet.actualOrientation.beta) + 90.0) / 180.0,
+  //   generate_midi: analogCCForControl(0x0b),
+  //   threshold: 3 / 180.0,
+  // },
+  // {
+  //   name: 'l-orientation.gamma',
+  //   read_value: (packet) =>
+  //     (Number(packet.actualOrientation.gamma) + 90.0) / 180.0,
+  //   generate_midi: analogCCForControl(0x0c),
+  //   threshold: 3 / 180.0,
+  // },
   {
     name: 'l-analog-horizontal',
     read_value: (packet) => {
@@ -378,7 +405,7 @@ const updateBothControls = (joyCon, packet) => {
     //if (analogStickActive(packet)) {
       // packet.actualOrientation.gamma returns between -90 and 90
       //then send gamma orientation messages
-    if (true){
+
       //console.log(tiltReading.read_value(packet))
       updateControl(tiltReading, packet);
       if (CALIBRATING) {
@@ -396,20 +423,12 @@ const updateBothControls = (joyCon, packet) => {
         CALIBRATING = false; // Reset calibrating flag after setting
         CALIBRATE_ID = ''
       }
+  }
+
+
+    for (const control of leftControls) {
+      updateControl(control, packet);
     }
-  }
-
-
-  else if (MODE == 'stick'){
-    console.log(stickReading.read_value(packet))
-    updateControl(stickReading, packet);
-
-
-  }
-
-    // for (const control of leftControls) {
-    //   updateControl(control, packet);
-    // }
   }
 };
 

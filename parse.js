@@ -49,7 +49,7 @@ function calculateBatteryLevel(value) {
       level = 'charging';
   }
 
-  return level;
+  return level.concat(' (', (value[0] * 100) / 8, '%)');
 }
 
 const ControllerType = {
