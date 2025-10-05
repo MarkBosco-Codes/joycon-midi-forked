@@ -219,7 +219,7 @@ const leftControls = [
       );
     },
     generate_midi: analogCCForControl(13),
-    threshold: 0.20,
+    threshold: 0.02,
   },
   {
     name: 'l-analog-vertical',
