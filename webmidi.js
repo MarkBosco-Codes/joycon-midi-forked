@@ -118,6 +118,7 @@ const buttonCCToggleForControl = (control) => {
             const outputValue = this.isToggleOn ? MIDI_VELOCITY_MAX : MIDI_VELOCITY_MIN;
 
             // 3. Return the new MIDI message array.
+            console.log(outputValue)
             return [
                 MIDI_CC_CH_1,
                 control, // Captured from the factory function
@@ -125,7 +126,7 @@ const buttonCCToggleForControl = (control) => {
             ];
         }
         // Return null for the 'release' event.
-        return null; 
+        return []; 
     };
 };
 
