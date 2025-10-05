@@ -44,8 +44,7 @@ const sendMidi = (bytes, msg = '') => {
     //console.log('SendMidi--' + bytes + ' ' + msg);
     midiout.send(bytes);
   } else {
-    console.log(bytes)
-    console.log('MIDI not connected');
+    //console.log('MIDI not connected');
   }
 };
 
@@ -110,14 +109,11 @@ const analogCCForControl2 = () => {
 const buttonCCToggleForControl = (control) => {
     
     return function(readValue) {
-
         if (readValue) { 
             // 1. Flip the state stored on the control object.
             this.isToggleOn = !this.isToggleOn;
-
             // 2. Determine the output value based on the new state.
             const outputValue = this.isToggleOn ? MIDI_VELOCITY_MAX : MIDI_VELOCITY_MIN;
-
             // 3. Return the new MIDI message array.
             return [
                 MIDI_CC_CH_1,
@@ -125,7 +121,6 @@ const buttonCCToggleForControl = (control) => {
                 outputValue,
             ];
         }
-        
         // Return null for the 'release' event.
         return null; 
     };
@@ -138,12 +133,12 @@ const leftControls = [
   {
     name: 'down-button',
     read_value: (packet) => packet.buttonStatus.down,
-    generate_midi: noteOnOff(0x24),
+    generate_midi: buttonCCForControl(0x24),
   },
   {
     name: 'right-button',
     read_value: (packet) => packet.buttonStatus.right,
-    generate_midi: noteOnOff(0x25),
+    generate_midi: buttonCCForControl(0x25),
   },
   {
     name: 'up-button',
@@ -160,34 +155,23 @@ const leftControls = [
   {
     name: 'l-button',
     read_value: (packet) => packet.buttonStatus.l,
-    generate_midi: noteOnOff(0x28),
+    generate_midi: buttonCCForControl(0x28),
   },
   {
     name: 'zl-button',
     read_value: (packet) => packet.buttonStatus.zl,
-    generate_midi: noteOnOff(0x29),
+    generate_midi: buttonCCForControl(0x29),
   },
   {
     name: 'capture-button-as-note',
     read_value: (packet) => packet.buttonStatus.capture,
-    generate_midi: noteOnOff(0x2a),
+    generate_midi: buttonCCToggleForControl(0x2a),
   },
   {
     name: 'minus-button-as-note',
     read_value: (packet) => packet.buttonStatus.minus,
-    generate_midi: noteOnOff(0x2b),
-  },
-
-  // Control (CC) buttons
-  {
-    name: 'minus-button-as-cc',
-    read_value: (packet) => packet.buttonStatus.minus,
-    generate_midi: buttonCCForControl(0x01),
-  },
-  {
-    name: 'capture-button-as-cc',
-    read_value: (packet) => packet.buttonStatus.capture,
-    generate_midi: buttonCCForControl(0x02),
+    isToggleOn:false,
+    generate_midi: buttonCCToggleForControl(0x2b),
   },
   {
     name: 'l-sl-button',
@@ -223,8 +207,8 @@ const leftControls = [
   {
     name: 'l-analog-horizontal',
     read_value: (packet) => {
-      const hmin = -1.2;
-      const hmax = 1.4;
+      const hmin = -1.38;
+      const hmax = 1.20;
       return (
         (Math.max(
           hmin,
@@ -234,8 +218,8 @@ const leftControls = [
         (hmax - hmin)
       );
     },
-    generate_midi: analogCCForControl(0x0d),
-    threshold: 0.02,
+    generate_midi: analogCCForControl(13),
+    threshold: 0.20,
   },
   {
     name: 'l-analog-vertical',
@@ -251,7 +235,7 @@ const leftControls = [
         (vmax - vmin)
       );
     },
-    generate_midi: analogCCForControl(0x0e),
+    generate_midi: analogCCForControl(14),
     threshold: 0.02,
   },
 ];
