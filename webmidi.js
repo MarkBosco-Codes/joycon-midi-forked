@@ -66,6 +66,7 @@ const noteOnOff = (note) => {
 
 // Returns a function that converts a boolean value to a CC message.
 const buttonCCForControl = (control) => {
+  
   return (readValue) => [
     MIDI_CC_CH_1,
     control,
@@ -110,10 +111,12 @@ const buttonCCToggleForControl = (control) => {
     
     return function(readValue) {
         if (readValue) { 
+            
             // 1. Flip the state stored on the control object.
             this.isToggleOn = !this.isToggleOn;
             // 2. Determine the output value based on the new state.
             const outputValue = this.isToggleOn ? MIDI_VELOCITY_MAX : MIDI_VELOCITY_MIN;
+
             // 3. Return the new MIDI message array.
             return [
                 MIDI_CC_CH_1,
@@ -165,6 +168,7 @@ const leftControls = [
   {
     name: 'capture-button-as-note',
     read_value: (packet) => packet.buttonStatus.capture,
+    isToggleOn:false,
     generate_midi: buttonCCToggleForControl(0x2a),
   },
   {
